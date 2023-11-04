@@ -1,0 +1,18 @@
+Server Side
+
+Client Side
+
+GUI
+
+Resources:
+Websites
+- https://www.bogotobogo.com/python/python_network_programming_tcp_server_client_chat_server_chat_client_select.php
+- https://pythonprogramming.net/server-chatroom-sockets-tutorial-python-3/
+- https://pythonprogramming.net/client-chatroom-sockets-tutorial-python-3/?completed=/server-chatroom-sockets-tutorial-python-3/
+- https://medium.com/@jkishan421/chat-room-application-in-python-part-i-9193d768dc64
+- https://levelup.gitconnected.com/learn-python-by-building-a-multi-user-group-chat-gui-application-af3fa1017689
+- https://realpython.com/python-gui-tkinter/
+
+Video
+Chat - https://www.youtube.com/watch?v=nmzzeAvQHp8 
+Tkinter (GUI) - https://www.youtube.com/watch?v=sopNW98CRag
