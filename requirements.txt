@@ -2,7 +2,16 @@ Server Side
 
 Client Side
 
+Encription 
+
+- dont save the messages 
+
 GUI
+- make the gui more pretty
+- buttons
+- open to button connect
+- chat box 
+- exit and connection made
 
 References:
 Websites
