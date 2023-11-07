@@ -21,26 +21,55 @@ class TCP:
 
 class GUI:
     def __init__(self):
-        # create window
+         # Set colorings
+        self.black = "#000000"
+        self.dark_grey = "#333333"
+        self.light_grey = "474747"
+        self.aqua_blue = "#00FFFF"
+        self.white = "#FFFFFF"
+        
+        # Create window
         self.root = Tk()
         self.root.title("The Securest Chat App")
         self.root.iconbitmap("./chaticon.ico")
-        self.root.geometry("500x800")
+        self.root.geometry("500x700")
+        self.root.configure(background=self.dark_grey)
 
-        #set colorings
-        self.black="#000000"
-        self.dark_grey = "#474747"
-        self.light_grey = ""
-        self.root.configure(background=self.dark_grey, )
+        # Wdiget
+        # Login Label
+        self.login_label = Label(self.root,text="Log In", font=("Helvetica, 32"), bg=self.dark_grey, fg=self.aqua_blue)
+        
+        # Username Label and Entry
+        self.user_label = Label(self.root, text="Username: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
+        self.user_entry = Entry(self.root)
+    
+        # Password Label and Entry
+        self.password_label = Label(self.root, text="Password: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
+        self.password_entry = Entry(self.root, show="*")
+        
+        # Start connection button
+        self.start_button = Button(self.root, text="Connect", font=("Helvetica, 18"), bg=self.aqua_blue, fg=self.black, command=self.start_thread)
+    
+        # Wdiget Placement
+        # Login
+        self.login_label.place(relx=.5, rely=.2,anchor= CENTER)
+        
+        # User Label and Entry
+        self.user_label.place(relx=.3, rely=.3,anchor= CENTER)
+        self.user_entry.place(relx=.6, rely=.3,anchor= CENTER)
+        
+        # Password Label and Entry
+        self.password_label.place(relx=.3, rely=.35,anchor= CENTER)
+        self.password_entry.place(relx=.6, rely=.35,anchor= CENTER)
+        
+        # Connect Button
+        self.start_button.place(relx=.5, rely=.45,anchor= CENTER)
 
-        #start connection button
-        self.start_button = Button(self.root, text="start tcp connection", font="Helvetica, 32", command=self.start_thread)
-        self.start_button.pack(pady=100)
-
+        
         #create label to update
         self.data = "waiting..."
         self.label = Label(self.root, text=self.data)
-        self.label.pack(pady=30)
+        # self.label.pack(pady=30)
         self.counter = 0
 
     def run(self):
@@ -84,7 +113,6 @@ class GUI:
         for x in range(10):
             time.sleep(1)
             self.send_message(f"hello {x}")
-
 
     def connect(self, host, port):
         #definte connection information
