@@ -18,8 +18,8 @@ import threading
 class TCP:
     def __init__(self, host, port):
         pass
-
-class GUI:
+ 
+class LoginScreen:
     def __init__(self):
          # Set colorings
         self.black = "#000000"
@@ -34,8 +34,8 @@ class GUI:
         self.root.iconbitmap("./chaticon.ico")
         self.root.geometry("500x700")
         self.root.configure(background=self.dark_grey)
-
-        # Wdiget
+        
+         # Wdiget
         # Login Label
         self.login_label = Label(self.root,text="Log In", font=("Helvetica, 32"), bg=self.dark_grey, fg=self.aqua_blue)
         
@@ -64,11 +64,49 @@ class GUI:
         
         # Connect Button
         self.start_button.place(relx=.5, rely=.45,anchor= CENTER)
+   
+    def connect(self):
+        username = self.user_entry.get()
+        password = self.password_entry.get()
+        
+        # Check authenitciation here
+        
+        
+        # Close the login screen
+        self.root.destroy()
+        
+        # Go to main screen
+        main_screen = MainChatScreen(username)
+        main_screen.start_thread()
 
+        
+        
+    
+class MainChatScreen:
+    def __init__(self, username):
+         # Set colorings
+        self.black = "#000000"
+        self.dark_grey = "#333333"
+        self.light_grey = "474747"
+        self.aqua_blue = "#00FFFF"
+        self.white = "#FFFFFF"
+        
+        # Create window
+        self.root = Tk()
+        self.root.title("The Securest Chat App")
+        self.root.iconbitmap("./chaticon.ico")
+        self.root.geometry("500x700")
+        self.root.configure(background=self.dark_grey)
+        
+        # Widget 
+        self.username = username
+        
+        
+       
         
         #create label to update
         self.data = "waiting..."
-        self.label = Label(self.root, text=self.data)
+        self.label = Label(self.root, text="")
         # self.label.pack(pady=30)
         self.counter = 0
 
@@ -126,5 +164,5 @@ class GUI:
     
 if __name__ == "__main__":
     print()
-    gui = GUI()
+    gui = LoginScreen()
     gui.run()
