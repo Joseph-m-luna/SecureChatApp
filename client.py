@@ -35,34 +35,20 @@ class LoginScreen:
         self.root.geometry("500x700")
         self.root.configure(background=self.dark_grey)
         
-         # Wdiget
-        # Login Label
+        # Wdiget
         self.login_label = Label(self.root,text="Log In", font=("Helvetica, 32"), bg=self.dark_grey, fg=self.aqua_blue)
-        
-        # Username Label and Entry
         self.user_label = Label(self.root, text="Username: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
         self.user_entry = Entry(self.root)
-    
-        # Password Label and Entry
         self.password_label = Label(self.root, text="Password: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
         self.password_entry = Entry(self.root, show="*")
-        
-        # Start connection button
-        self.start_button = Button(self.root, text="Connect", font=("Helvetica, 18"), bg=self.aqua_blue, fg=self.black, command=self.start_thread)
+        self.start_button = Button(self.root, text="Connect", font=("Helvetica, 18"), bg=self.aqua_blue, fg=self.black, command=self.connect)
     
         # Wdiget Placement
-        # Login
         self.login_label.place(relx=.5, rely=.2,anchor= CENTER)
-        
-        # User Label and Entry
         self.user_label.place(relx=.3, rely=.3,anchor= CENTER)
         self.user_entry.place(relx=.6, rely=.3,anchor= CENTER)
-        
-        # Password Label and Entry
         self.password_label.place(relx=.3, rely=.35,anchor= CENTER)
         self.password_entry.place(relx=.6, rely=.35,anchor= CENTER)
-        
-        # Connect Button
         self.start_button.place(relx=.5, rely=.45,anchor= CENTER)
    
     def connect(self):
@@ -77,9 +63,13 @@ class LoginScreen:
         
         # Go to main screen
         main_screen = MainChatScreen(username)
-        main_screen.start_thread()
+        main_screen.run()
 
+    def run(self):
+        self.root.mainloop()
         
+    def start_thread(self):
+        pass
         
     
 class MainChatScreen:
@@ -100,14 +90,15 @@ class MainChatScreen:
         
         # Widget 
         self.username = username
+        self.username_label = Label(self.root, text=self.username)
+        self.username_label.pack(pady=30)
         
         
-       
         
         #create label to update
         self.data = "waiting..."
-        self.label = Label(self.root, text="")
-        # self.label.pack(pady=30)
+        self.label = Label(self.root, text=self.data)
+        self.label.pack(pady=40)
         self.counter = 0
 
     def run(self):
@@ -163,6 +154,5 @@ class MainChatScreen:
         s.close()
     
 if __name__ == "__main__":
-    print()
     gui = LoginScreen()
     gui.run()
