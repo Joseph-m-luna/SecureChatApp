@@ -92,9 +92,12 @@ class MainChatScreen:
         self.username = username
         self.username_label = Label(self.root, text=self.username)
         self.username_label.pack(pady=30)
+        # msg feed
+        # msg input
+        # send msg btn
+        # side bar with chatroom name
         
-        
-        
+    
         #create label to update
         self.data = "waiting..."
         self.label = Label(self.root, text=self.data)
