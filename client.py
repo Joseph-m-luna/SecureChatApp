@@ -43,12 +43,12 @@ class GUI:
         self.user_label = Label(self.root, text="Username: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
         self.user_entry = Entry(self.root)
 
-        # Password Label and Entry
-        self.password_label = Label(self.root, text="Password: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
-        self.password_entry = Entry(self.root, show="*")
+        # IP address Label and Entry
+        self.address_label = Label(self.root, text="Chatroom IP: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
+        self.address_entry = Entry(self.root, show="*")
 
         #start connection button
-        self.start_button = Button(self.root, text="start tcp connection", font="Helvetica, 32", command=self.start_thread)
+        self.start_button = Button(self.root, text="Connect", font="Helvetica, 24", command=self.start_thread)
 
         # Wdiget Placement
         # Login
@@ -58,14 +58,13 @@ class GUI:
         self.user_label.place(relx=.3, rely=.3,anchor= CENTER)
         self.user_entry.place(relx=.6, rely=.3,anchor= CENTER)
         
-        # Password Label and Entry
-        self.password_label.place(relx=.3, rely=.35,anchor= CENTER)
-        self.password_entry.place(relx=.6, rely=.35,anchor= CENTER)
+        # IP address Label and Entry
+        self.address_label.place(relx=.3, rely=.35,anchor= CENTER)
+        self.address_entry.place(relx=.6, rely=.35,anchor= CENTER)
         
         # Connect Button
         self.start_button.place(relx=.5, rely=.45,anchor= CENTER)
 
-        
         #create label to update
         self.data = "waiting..."
         self.label = Label(self.root, text=self.data)
@@ -97,17 +96,21 @@ class GUI:
         self.counter += 1
     
     def start_thread(self):
+        #TODO: Switch screen to the chat screen
+
+        #start thread for TCP connection
         threading.Thread(target=self.accept_connection).start()
     
     def accept_connection(self):
         #get username TODO: Once username box is implemented, we should get text from it. For now we set a static value
-        self.username = "temp_name"
+        self.username = self.user_entry.get()
+        self.IP = self.address_entry.get()
 
         #create socket
         self.con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         #connect to the server
-        self.con.connect(("127.0.0.1", 9001))
+        self.con.connect((self.IP, 9001))
 
         #shake hands TODO: add encryption to connection when it is established here
         for x in range(10):
