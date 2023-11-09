@@ -50,5 +50,5 @@ class server:
         cons[-1].keep_listening() #TODO: add threading to this            
 
 if __name__  == "__main__":
-    serv = server("127.0.0.1")
+    serv = server("127.0.0.1", 9001)
     serv.runserver()
