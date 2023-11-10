@@ -4,6 +4,9 @@ import json as pickle
 import time
 import socket
 import threading
+import ssl
+
+CERTIFICATE_PATH = "./crypto/certificate.pem"
 
 ################################
 # GENERAL USE CASE:
@@ -86,7 +89,7 @@ class GUI:
         #serialize message with pickle
         msg_serial = pickle.dumps(tcp_message)
 
-        self.con.sendall(msg_serial.encode("utf-8"))
+        self.sec_con.sendall(msg_serial.encode("utf-8"))
 
     def recv_message(self):
         pass
@@ -106,13 +109,18 @@ class GUI:
         self.username = self.user_entry.get()
         self.IP = self.address_entry.get()
 
+        # create ssl context
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.load_verify_locations(CERTIFICATE_PATH)
+        context.check_hostname = False
+
         #create socket
         self.con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sec_con = context.wrap_socket(self.con)
 
         #connect to the server
-        self.con.connect((self.IP, 9001))
+        self.sec_con.connect((self.IP, 9001))
 
-        #shake hands TODO: add encryption to connection when it is established here
         for x in range(10):
             time.sleep(1)
             self.send_message(f"hello {x}")
