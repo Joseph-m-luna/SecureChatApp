@@ -15,33 +15,42 @@ import threading
 #  * when messages are sent from the server, load them into the GUI
 #  * when client sends message to server, server will send that out to the other clients
 ###############################
+
+# Set colorings
+black = "#000000"
+dark_grey = "#333333"
+light_grey = "474747"
+aqua_blue = "#00FFFF"
+white = "#FFFFFF"
+
+# Set Font
+font_sm_bold=("Helvetica 12 bold")
+font_sm=("Helvetica 12")
+font_med=("Helvetica 18")
+font_lrg=("Helvetica 32")
+
 class TCP:
     def __init__(self, host, port):
         pass
  
 class LoginScreen:
     def __init__(self):
-         # Set colorings
-        self.black = "#000000"
-        self.dark_grey = "#333333"
-        self.light_grey = "474747"
-        self.aqua_blue = "#00FFFF"
-        self.white = "#FFFFFF"
+       
         
         # Create window
         self.root = Tk()
         self.root.title("The Securest Chat App")
         self.root.iconbitmap("./chaticon.ico")
         self.root.geometry("500x700")
-        self.root.configure(background=self.dark_grey)
+        self.root.configure(background=dark_grey)
         
         # Wdiget
-        self.login_label = Label(self.root,text="Log In", font=("Helvetica, 32"), bg=self.dark_grey, fg=self.aqua_blue)
-        self.user_label = Label(self.root, text="Username: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
+        self.login_label = Label(self.root,text="Log In", font=font_lrg, bg=dark_grey, fg=aqua_blue)
+        self.user_label = Label(self.root, text="Username: ", font=font_med, bg=dark_grey, fg=white)
         self.user_entry = Entry(self.root)
-        self.password_label = Label(self.root, text="Password: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
+        self.password_label = Label(self.root, text="Password: ", font=font_med, bg=dark_grey, fg=white)
         self.password_entry = Entry(self.root, show="*")
-        self.start_button = Button(self.root, text="Connect", font=("Helvetica, 18"), bg=self.aqua_blue, fg=self.black, command=self.connect)
+        self.start_button = Button(self.root, text="Connect", font=font_med, bg=aqua_blue, fg=black, command=self.connect)
     
         # Wdiget Placement
         self.login_label.place(relx=.5, rely=.2,anchor= CENTER)
@@ -74,19 +83,12 @@ class LoginScreen:
     
 class MainChatScreen:
     def __init__(self, username):
-         # Set colorings
-        self.black = "#000000"
-        self.dark_grey = "#333333"
-        self.light_grey = "474747"
-        self.aqua_blue = "#00FFFF"
-        self.white = "#FFFFFF"
-        
         # Create window
         self.root = Tk()
         self.root.title("The Securest Chat App")
         self.root.iconbitmap("./chaticon.ico")
         self.root.geometry("500x700")
-        self.root.configure(background=self.dark_grey)
+        self.root.configure(background=dark_grey)
         
         # Widget 
         self.username = username
@@ -94,7 +96,10 @@ class MainChatScreen:
         self.username_label.pack(pady=30)
         # msg feed
         # msg input
+        self.msg = Text(self.root, bg=white, fg=black, font=font_sm, width=59)
+        self.msg_entry = Entry(self.root, bg=white, fg=black, font=font_sm, width=52)
         # send msg btn
+        self.send_btn = Button(self.root, text="Send", font=font_sm_bold, bg=aqua_blue, fg=black)
         # side bar with chatroom name
         
     
@@ -103,6 +108,12 @@ class MainChatScreen:
         self.label = Label(self.root, text=self.data)
         self.label.pack(pady=40)
         self.counter = 0
+        
+        # Widget Placement
+        self.msg.place(relx=.5, rely=.635,anchor= CENTER)
+        self.msg_entry.place(relx=.455, rely=.90,anchor= CENTER)
+        self.send_btn.place(relx=.855, rely=.90,anchor= CENTER)
+        
 
     def run(self):
         self.root.mainloop()
