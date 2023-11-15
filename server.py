@@ -1,7 +1,8 @@
 import socket
 import threading
+from datetime import datetime
 import time
-import json as pickle
+import json
 import ssl
 
 PRIV_KEY_PATH = "./crypto/private.key"
@@ -16,8 +17,7 @@ class connection:
         #deserialize data
         decoded_data = data.decode()
         print("decoded: ", decoded_data)
-        message_dict = pickle.loads(data)
-        print(message_dict)
+        message_dict = json.loads(data)
 
         return message_dict
     
@@ -60,18 +60,22 @@ class server:
         print(f'Listening on {(self.host, self.port)}...')
 
         while True:
+            #start secure connection
             client, address = s.accept()
             client = context.wrap_socket(client, server_side=True)
             print(f'Connected with {str(address)}')
 
-            client.send('NICK'.encode('ascii'))
-            nickname = client.recv(1024).decode('ascii')
+            #get nickname of client
+            message = {"metadata": "nick"}
+            client.send(json.dumps(message).encode("utf-8"))
+            nickname = json.loads(client.recv(1024).decode("utf-8"))["metadata"]
             self.nicknames.append(nickname)
             self.clients.append(client)
 
+            #inform uesrs of connection
             print(f'Nickname of the client is {nickname}!')
-            self.broadcast(f'{nickname} joined the chat!'.encode('ascii'))
-            client.send('\nConnected to the server!'.encode('ascii'))
+            join_msg = {"data": f"{nickname} joined the chat!", "time": (str(datetime.now())), "sender": "Server"}
+            self.broadcast(json.dumps(join_msg).encode("utf-8"))
 
             thread = threading.Thread(target=self.handle, args=(client,))
             thread.daemon = True

@@ -1,6 +1,7 @@
+import tkinter as tk
 from tkinter import *
 from datetime import datetime
-import json as pickle
+import json
 import time
 import socket
 import threading
@@ -79,46 +80,62 @@ class GUI:
     def run(self):
         self.root.mainloop()
     
-    def send_message(self, msg_data):
-        #create dictionary for message data
-        tcp_message = dict()
+    def send_message(self):
+        #get message text
+        data = self.entry_field.get()
 
-        #add contents to message
-        tcp_message["data"] = msg_data
-        tcp_message["time"] = str(datetime.now())
-        tcp_message["sender"] = self.username
+        if data:
 
-        #serialize message with pickle
-        msg_serial = pickle.dumps(tcp_message)
+            #create dictionary for message data
+            tcp_message = dict()
 
-        return msg_serial.encode("utf-8")
+            #add contents to message
+            tcp_message["data"] = data
+            tcp_message["time"] = str(datetime.now())
+            tcp_message["sender"] = self.username
 
-        #self.con.sendall(msg_serial.encode("utf-8"))
+            #serialize message with json
+            msg_serial = json.dumps(tcp_message).encode("utf-8")
+
+            self.sec_con.sendall(msg_serial)
+            
+            #remove text from input box
+            self.entry_field.delete(0, "end")
 
     def recv_message(self, client):
         while True:
             try:
-                message = client.recv(1024).decode('ascii')
-                if message == 'NICK':
-                    client.send(self.nickname.encode('ascii'))
+                data = client.recv(1024).decode("utf-8")
+                data = json.loads(data)
+                if len(data) == 1:
+                    if data["metadata"] == "nick":
+                        send_data = {"metadata": self.username}
+                        client.send(json.dumps(send_data).encode("utf-8"))
                 else:
-                    print(message)
-            except:
-                print('An error occured')
+                    if data["sender"] == self.username:
+                        align = "w"
+                    else:
+                        align = "e"
+
+                    #create message box
+                    message_frame = tk.Frame(self.messages_frame, padx=10, pady=5, bd=2, relief=RAISED)
+                    message_frame.pack(anchor=align, pady=5, padx=10, fill="both")
+
+                    #create username label
+                    username_label = Label(message_frame, text=data["sender"], font=("Helvetica", 10, "bold"))
+                    username_label.pack(anchor=align)
+                    
+                    #create message label
+                    message_label = Label(message_frame, text=data["data"], justify=LEFT)
+                    message_label.pack(anchor=align)
+
+                    #create metadata label
+                    metadata_label = Label(message_frame, text=data["time"], font=("Helvetica", 8))
+                    metadata_label.pack(anchor=align, pady=(5, 0))
+            except Exception as error:
+                print(f'An error occured {error}')
                 client.close()
                 break
-
-    def write_message(self, client):
-        message = 0
-        while True:
-            #TODO get input from user
-            #message = f'{self.nickname}: {input("")}'
-            time.sleep(5)
-            
-            #send_msg = self.send_message(str(message+1))
-            send_msg = f"{self.username}: {str(message)}"
-            client.send(send_msg.encode('ascii'))
-            message += 1
 
     def update_label(self):
         self.data.set(f"{self.counter}")
@@ -127,13 +144,10 @@ class GUI:
     def start_thread(self):
         #TODO: Switch screen to the chat screen
 
-        #create dummy message box for now
-        self.message_label = Label(self.root, text="Username: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
-        self.message_entry = Entry(self.root)
-        #self.message_entry.pack(pady=170)
+        #TODO: Create protections (if username is taken, inform user and don't connect. If IP is invalid, don't connect, inform user. Etc.)
 
-        self.send_button = Button(self.root, text="Send", font="Helvetica, 20", command=self.send_message)
-        #self.send_button.pack(pady=190)
+        #create dummy message box for now
+        self.make_chat_window()
 
         self.accept_connection()
 
@@ -142,11 +156,32 @@ class GUI:
         self.receive_thread.daemon = True
         self.receive_thread.start()
 
-        #start write thread for TCP connection
-        self.write_thread = threading.Thread(target=self.write_message, args=(self.sec_con,))
-        self.write_thread.daemon = True
-        self.write_thread.start()
-        
+    def make_chat_window(self):
+        self.root.title("Chat Application")
+
+        # Create a frame for messages
+        self.messages_frame = tk.Frame(self.root)
+        self.messages_frame.pack(fill="both", expand=True)
+
+        # Create a scrollbar for the message frame
+        self.scrollbar = Scrollbar(self.messages_frame)
+        self.scrollbar.pack(side="right", fill="y")
+
+        # Create a label for each message
+        self.messages = []
+
+        # Create Entry widget for typing messages
+        self.entry_frame = tk.Frame(self.root)
+        self.entry_frame.pack(side="bottom", fill="both", pady=5)
+        self.entry_field = Entry(self.entry_frame)
+        self.entry_field.pack(side="left", fill="both", expand=True)
+
+        # Create Send button
+        self.send_button = Button(self.entry_frame, text="Send", command=self.send_message)
+        self.send_button.pack(side="right")
+
+        # Bind Enter key to send_message function
+        self.entry_field.bind("<Return>", lambda event: self.send_message())
     
     def accept_connection(self):
         #get username TODO: Once username box is implemented, we should get text from it. For now we set a static value
@@ -166,16 +201,6 @@ class GUI:
 
         #connect to the server
         self.sec_con.connect((self.IP, 9001))
-
-    def connect(self, host, port):
-        #definte connection information
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((host, port))
-        for i in range(10):
-            message = f"message {i}"
-            s.sendall(message.encode("utf-8"))
-            time.sleep(1)
-        s.close()
     
 if __name__ == "__main__":
     print()
