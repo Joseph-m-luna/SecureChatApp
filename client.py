@@ -4,6 +4,9 @@ import json as pickle
 import time
 import socket
 import threading
+import ssl
+
+CERTIFICATE_PATH = "./crypto/certificate.pem"
 
 ################################
 # GENERAL USE CASE:
@@ -71,6 +74,8 @@ class GUI:
         # self.label.pack(pady=30)
         self.counter = 0
 
+        self.nickname = ""
+
     def run(self):
         self.root.mainloop()
     
@@ -86,10 +91,34 @@ class GUI:
         #serialize message with pickle
         msg_serial = pickle.dumps(tcp_message)
 
-        self.con.sendall(msg_serial.encode("utf-8"))
+        return msg_serial.encode("utf-8")
 
-    def recv_message(self):
-        pass
+        #self.con.sendall(msg_serial.encode("utf-8"))
+
+    def recv_message(self, client):
+        while True:
+            try:
+                message = client.recv(1024).decode('ascii')
+                if message == 'NICK':
+                    client.send(self.nickname.encode('ascii'))
+                else:
+                    print(message)
+            except:
+                print('An error occured')
+                client.close()
+                break
+
+    def write_message(self, client):
+        message = 0
+        while True:
+            #TODO get input from user
+            #message = f'{self.nickname}: {input("")}'
+            time.sleep(5)
+            
+            #send_msg = self.send_message(str(message+1))
+            send_msg = f"{self.username}: {str(message)}"
+            client.send(send_msg.encode('ascii'))
+            message += 1
 
     def update_label(self):
         self.data.set(f"{self.counter}")
@@ -98,25 +127,45 @@ class GUI:
     def start_thread(self):
         #TODO: Switch screen to the chat screen
 
-        #start thread for TCP connection
-        threading.Thread(target=self.accept_connection).start()
+        #create dummy message box for now
+        self.message_label = Label(self.root, text="Username: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
+        self.message_entry = Entry(self.root)
+        #self.message_entry.pack(pady=170)
+
+        self.send_button = Button(self.root, text="Send", font="Helvetica, 20", command=self.send_message)
+        #self.send_button.pack(pady=190)
+
+        self.accept_connection()
+
+        #start receive thread for TCP connection
+        self.receive_thread = threading.Thread(target=self.recv_message, args=(self.sec_con,))
+        self.receive_thread.daemon = True
+        self.receive_thread.start()
+
+        #start write thread for TCP connection
+        self.write_thread = threading.Thread(target=self.write_message, args=(self.sec_con,))
+        self.write_thread.daemon = True
+        self.write_thread.start()
+        
     
     def accept_connection(self):
         #get username TODO: Once username box is implemented, we should get text from it. For now we set a static value
         self.username = self.user_entry.get()
         self.IP = self.address_entry.get()
 
+        #create ss1 context
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.load_verify_locations(CERTIFICATE_PATH)
+        context.check_hostname = False
+
         #create socket
         self.con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+        #secure socket
+        self.sec_con = context.wrap_socket(self.con)
+
         #connect to the server
-        self.con.connect((self.IP, 9001))
-
-        #shake hands TODO: add encryption to connection when it is established here
-        for x in range(10):
-            time.sleep(1)
-            self.send_message(f"hello {x}")
-
+        self.sec_con.connect((self.IP, 9001))
 
     def connect(self, host, port):
         #definte connection information
