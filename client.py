@@ -38,6 +38,7 @@ class GUI:
         self.root.iconbitmap("./chaticon.ico")
         self.root.geometry("500x700")
         self.root.configure(background=self.dark_grey)
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         #Widget
         #Login label
@@ -76,6 +77,11 @@ class GUI:
         self.counter = 0
 
         self.nickname = ""
+
+    def on_closing(self):
+        self.sec_con.close()
+        self.root.quit()
+        #self.root.destroy()
 
     def run(self):
         self.root.mainloop()
@@ -200,7 +206,11 @@ class GUI:
         self.sec_con = context.wrap_socket(self.con)
 
         #connect to the server
-        self.sec_con.connect((self.IP, 9001))
+        try:
+            self.sec_con.connect((self.IP, 9001))
+        except:
+            self.sec_con.close()
+            self.root.quit()
     
 if __name__ == "__main__":
     print()
