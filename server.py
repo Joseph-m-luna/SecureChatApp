@@ -28,6 +28,7 @@ class server:
         self.port = port
         self.clients = []
         self.nicknames =[]
+        self.limit = 10
 
     def broadcast(self, message):
         for client in self.clients:
@@ -37,16 +38,40 @@ class server:
         while True:
             try:
                 message = client.recv(1024)
-                # decrypt message
+                #decrypt message
                 self.broadcast(message)
             except:
+                #remove client from client list
                 index = self.clients.index(client)
                 self.clients.remove(client)
                 client.close()
                 nickname = self.nicknames[index]
-                self.broadcast(f'{nickname} left the chat!'.encode('ascii'))
+
+                #inform uesrs of disconnection
+                leave_msg = {"data": f"{nickname} left the chat!", "time": (str(datetime.now())), "sender": "Server"}
+                self.broadcast(json.dumps(leave_msg).encode("utf-8"))
                 self.nicknames.remove(nickname)
                 break
+
+    def setup_client(self, client, address, context, s):
+        client = context.wrap_socket(client, server_side=True)
+        print(f'Connected with {str(address)}')
+
+        #get nickname of client
+        message = {"metadata": "nick"}
+        client.send(json.dumps(message).encode("utf-8"))
+        nickname = json.loads(client.recv(1024).decode("utf-8"))["metadata"]
+        self.nicknames.append(nickname)
+        self.clients.append(client)
+
+        #inform uesrs of connection
+        print(f'Nickname of the client is {nickname}!')
+        join_msg = {"data": f"{nickname} joined the chat!", "time": (str(datetime.now())), "sender": "Server"}
+        self.broadcast(json.dumps(join_msg).encode("utf-8"))
+
+        thread = threading.Thread(target=self.handle, args=(client,))
+        thread.daemon = True
+        thread.start()      
 
     def runserver(self):
         #create ssl context
@@ -59,27 +84,35 @@ class server:
         s.listen()
         print(f'Listening on {(self.host, self.port)}...')
 
-        while True:
-            #start secure connection
-            client, address = s.accept()
-            client = context.wrap_socket(client, server_side=True)
-            print(f'Connected with {str(address)}')
+        try:
+            while True:
+                if len(self.clients) < self.limit:
+                    #start secure connection
+                    client, address = s.accept()
 
-            #get nickname of client
-            message = {"metadata": "nick"}
-            client.send(json.dumps(message).encode("utf-8"))
-            nickname = json.loads(client.recv(1024).decode("utf-8"))["metadata"]
-            self.nicknames.append(nickname)
-            self.clients.append(client)
+                    #set up connection
+                    self.setup_client(client, address, context, s)
 
-            #inform uesrs of connection
-            print(f'Nickname of the client is {nickname}!')
-            join_msg = {"data": f"{nickname} joined the chat!", "time": (str(datetime.now())), "sender": "Server"}
-            self.broadcast(json.dumps(join_msg).encode("utf-8"))
+                else:
+                    #check to see if the # of clients exceeds 10
+                    #if yes: reject
+                    #if no: handle client in separate thread and return to main loop
+                    while True:
+                        client, address = s.accept()
+                        if len(self.clients) >= self.limit:
+                            print(len(self.clients))
+                            client.close()
+                        else:
+                            #setup connection
+                            self.setup_client(client, address, context, s)
+                            break 
+        except KeyboardInterrupt:
+            print("\nCaught keyboard interrupt, exiting")
+        finally:
+            s.close()
 
-            thread = threading.Thread(target=self.handle, args=(client,))
-            thread.daemon = True
-            thread.start()          
+
+
 
 if __name__  == "__main__":
     serv = server("127.0.0.1", 9001)
