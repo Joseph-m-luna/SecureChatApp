@@ -8,6 +8,7 @@ import threading
 import ssl
 
 CERTIFICATE_PATH = "./crypto/certificate.pem"
+MESSAGE_CHAR_LIMIT = 500
 
 ################################
 # GENERAL USE CASE:
@@ -31,6 +32,7 @@ class GUI:
         self.light_grey = "474747"
         self.aqua_blue = "#00FFFF"
         self.white = "#FFFFFF"
+        self.red = "#FF0000"
 
         # Create window
         self.root = Tk()
@@ -50,7 +52,7 @@ class GUI:
 
         # IP address Label and Entry
         self.address_label = Label(self.root, text="Chatroom IP: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
-        self.address_entry = Entry(self.root, show="*")
+        self.address_entry = Entry(self.root)
 
         #start connection button
         self.start_button = Button(self.root, text="Connect", font="Helvetica, 24", command=self.start_thread)
@@ -79,7 +81,8 @@ class GUI:
         self.nickname = ""
 
     def on_closing(self):
-        self.sec_con.close()
+        if hasattr(self, "sec_con"):
+            self.sec_con.close()
         self.root.quit()
         #self.root.destroy()
 
@@ -88,10 +91,9 @@ class GUI:
     
     def send_message(self):
         #get message text
-        data = self.entry_field.get()
+        data = self.entry_field.get("1.0", "end")
 
-        if data:
-
+        if data and len(data) <= MESSAGE_CHAR_LIMIT:    
             #create dictionary for message data
             tcp_message = dict()
 
@@ -106,7 +108,7 @@ class GUI:
             self.sec_con.sendall(msg_serial)
             
             #remove text from input box
-            self.entry_field.delete(0, "end")
+            self.entry_field.delete("1.0", "end")
 
     def recv_message(self, client):
         while True:
@@ -134,6 +136,9 @@ class GUI:
                     #create message label
                     message_label = Label(message_frame, text=data["data"], justify=LEFT)
                     message_label.pack(anchor=align)
+
+                    # make message label wrap text dynamically
+                    message_label.bind("<Configure>", lambda event: message_label.config(wraplength=message_label.winfo_width()))
 
                     #create metadata label
                     metadata_label = Label(message_frame, text=data["time"], font=("Helvetica", 8))
@@ -176,25 +181,44 @@ class GUI:
         # Create a label for each message
         self.messages = []
 
-        # Create Entry widget for typing messages
+        # Create an entry frame for a Text widget and a Send Button
         self.entry_frame = tk.Frame(self.root)
-        self.entry_frame.pack(side="bottom", fill="both", pady=5)
-        self.entry_field = Entry(self.entry_frame)
+        self.entry_frame.pack(fill="both")
+
+        # Create Text widget for typing messages
+        self.entry_field = tk.Text(self.entry_frame, width=1, height=2, wrap=WORD)
         self.entry_field.pack(side="left", fill="both", expand=True)
 
-        # Create Send button
-        self.send_button = Button(self.entry_frame, text="Send", command=self.send_message)
-        self.send_button.pack(side="right")
+        # Create a word counter
+        self.word_counter = tk.Label(self.entry_frame, text="0/500", font=("Helvetica", 8))
+        self.word_counter.pack(side="left", fill="both")
+        # Bind key release to update word counter and make it red if over 500 characters
+        self.entry_field.bind("<KeyRelease>", lambda event: self.update_word_counter())
+
+        # Create Send Button
+        self.send_button = tk.Button(self.entry_frame, text="Send", command=self.send_message)
+        self.send_button.pack(side="right", fill="both")
 
         # Bind Enter key to send_message function
         self.entry_field.bind("<Return>", lambda event: self.send_message())
+
+    def update_word_counter(self):
+        data = self.entry_field.get("1.0", "end")
+        self.word_counter.config(text=f"{len(data)}/{MESSAGE_CHAR_LIMIT}")
+
+        # If the message is over 500 characters, make the word counter red
+        if len(data) > MESSAGE_CHAR_LIMIT:
+            self.word_counter.config(fg=self.red)
+        else:
+            # reset foreground color
+            self.word_counter.config(fg=self.entry_field.cget("fg"))
     
     def accept_connection(self):
         #get username TODO: Once username box is implemented, we should get text from it. For now we set a static value
         self.username = self.user_entry.get()
         self.IP = self.address_entry.get()
 
-        #create ss1 context
+        #create ssl context
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         context.load_verify_locations(CERTIFICATE_PATH)
         context.check_hostname = False
