@@ -38,39 +38,26 @@ class GUI:
         self.root = Tk()
         self.root.title("The Securest Chat App")
         self.root.iconbitmap("./chaticon.ico")
-        self.root.geometry("500x700")
+        self.root.geometry("550x400")
         self.root.configure(background=self.dark_grey)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-        #Widget
-        #Login label
+        # Login Widget
         self.login_label = Label(self.root,text="Log In", font=("Helvetica, 32"), bg=self.dark_grey, fg=self.aqua_blue)
-
-        # Username Label and Entry
         self.user_label = Label(self.root, text="Username: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
         self.user_entry = Entry(self.root)
-
-        # IP address Label and Entry
         self.address_label = Label(self.root, text="Chatroom IP: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
         self.address_entry = Entry(self.root)
+        # , show="*"
+        self.start_button = Button(self.root, text="Connect", font="Helvetica, 20", command=self.start_thread)
 
-        #start connection button
-        self.start_button = Button(self.root, text="Connect", font="Helvetica, 24", command=self.start_thread)
-
-        # Wdiget Placement
-        # Login
-        self.login_label.place(relx=.5, rely=.2,anchor= CENTER)
-        
-        # User Label and Entry
-        self.user_label.place(relx=.3, rely=.3,anchor= CENTER)
-        self.user_entry.place(relx=.6, rely=.3,anchor= CENTER)
-        
-        # IP address Label and Entry
-        self.address_label.place(relx=.3, rely=.35,anchor= CENTER)
-        self.address_entry.place(relx=.6, rely=.35,anchor= CENTER)
-        
-        # Connect Button
-        self.start_button.place(relx=.5, rely=.45,anchor= CENTER)
+        # Login Wdiget Placement
+        self.login_label.place(relx=.5, rely=.3,anchor= CENTER)
+        self.user_label.place(relx=.3, rely=.45,anchor= CENTER)
+        self.user_entry.place(relx=.6, rely=.45,anchor= CENTER)
+        self.address_label.place(relx=.3, rely=.55,anchor= CENTER)
+        self.address_entry.place(relx=.6, rely=.55,anchor= CENTER)
+        self.start_button.place(relx=.5, rely=.70,anchor= CENTER)
 
         #create label to update
         self.data = "waiting..."
@@ -79,6 +66,12 @@ class GUI:
         self.counter = 0
 
         self.nickname = ""
+        # self.user_entry.get()
+
+    def on_closing(self):
+        self.sec_con.close()
+        self.root.quit()
+        #self.root.destroy()
 
     def on_closing(self):
         if hasattr(self, "sec_con"):
@@ -91,9 +84,10 @@ class GUI:
     
     def send_message(self):
         #get message text
-        data = self.entry_field.get("1.0", "end")
+        data = self.entry_field.get()
 
-        if data and len(data) <= MESSAGE_CHAR_LIMIT:    
+        if data:
+
             #create dictionary for message data
             tcp_message = dict()
 
@@ -108,7 +102,7 @@ class GUI:
             self.sec_con.sendall(msg_serial)
             
             #remove text from input box
-            self.entry_field.delete("1.0", "end")
+            self.entry_field.delete(0, "end")
 
     def recv_message(self, client):
         while True:
@@ -126,7 +120,7 @@ class GUI:
                         align = "e"
 
                     #create message box
-                    message_frame = tk.Frame(self.messages_frame, padx=10, pady=5, bd=2, relief=RAISED)
+                    message_frame = Frame(self.messages_inner_frame, padx=10, pady=5, bd=2, relief=RAISED)
                     message_frame.pack(anchor=align, pady=5, padx=10, fill="both")
 
                     #create username label
@@ -171,23 +165,42 @@ class GUI:
         self.root.title("Chat Application")
 
         # Create a frame for messages
-        self.messages_frame = tk.Frame(self.root)
+        self.messages_frame = Frame(self.root)
+        self.messages_frame.configure(bg=self.black)
         self.messages_frame.pack(fill="both", expand=True)
+        
+        # Create a Canvas to contain the messages
+        self.messages_canvas = Canvas(self.messages_frame, bg=self.dark_grey)
+        self.messages_canvas.pack(side="left", fill="both", expand=True)
 
-        # Create a scrollbar for the message frame
-        self.scrollbar = Scrollbar(self.messages_frame)
-        self.scrollbar.pack(side="right", fill="y")
+        # Create a scrollbar for the messages canvas
+        self.messages_scrollbar = Scrollbar(self.messages_frame, command=self.messages_canvas.yview)
+        self.messages_scrollbar.pack(side="right", fill="y")
 
+        # Configure canvas and scrollbar
+        self.messages_canvas.configure(yscrollcommand=self.messages_scrollbar.set)
+        self.messages_canvas.bind("<Configure>", lambda e: self.messages_canvas.configure(scrollregion=self.messages_canvas.bbox("all")))
+
+        # Create a frame to hold the messages inside the canvas
+        self.messages_inner_frame = Frame(self.messages_canvas,bg=self.aqua_blue)
+        self.messages_inner_frame.pack(fill="both", expand=True)
+        self.messages_canvas.create_window((0, 0), window=self.messages_inner_frame, anchor='nw')
+
+         
+
+        # Bind mousewheel scrolling to the messages canvas
+        self.messages_canvas.bind_all("<MouseWheel>", lambda event: self.messages_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units"))
+
+        
         # Create a label for each message
         self.messages = []
 
-        # Create an entry frame for a Text widget and a Send Button
-        self.entry_frame = tk.Frame(self.root)
-        self.entry_frame.pack(fill="both")
-
-        # Create Text widget for typing messages
-        self.entry_field = tk.Text(self.entry_frame, width=1, height=2, wrap=WORD)
-        self.entry_field.pack(side="left", fill="both", expand=True)
+        # Create Entry widget for typing messages
+        self.entry_frame = Frame(self.root)
+        self.entry_frame.pack(side="bottom", fill="x", pady=5)
+        # Text input
+        self.entry_field = Entry(self.entry_frame)
+        self.entry_field.pack(side="left", fill="x", expand=True)
 
         # Create a word counter
         self.word_counter = tk.Label(self.entry_frame, text="0/500", font=("Helvetica", 8))
@@ -195,15 +208,15 @@ class GUI:
         # Bind key release to update word counter and make it red if over 500 characters
         self.entry_field.bind("<KeyRelease>", lambda event: self.update_word_counter())
 
-        # Create Send Button
-        self.send_button = tk.Button(self.entry_frame, text="Send", command=self.send_message)
-        self.send_button.pack(side="right", fill="both")
+        # Create Send button
+        self.send_button = Button(self.entry_frame, text="Send", command=self.send_message)
+        self.send_button.pack(side="right")
 
         # Bind Enter key to send_message function
         self.entry_field.bind("<Return>", lambda event: self.send_message())
 
     def update_word_counter(self):
-        data = self.entry_field.get("1.0", "end")
+        data = self.entry_field.get()
         self.word_counter.config(text=f"{len(data)}/{MESSAGE_CHAR_LIMIT}")
 
         # If the message is over 500 characters, make the word counter red
@@ -212,7 +225,8 @@ class GUI:
         else:
             # reset foreground color
             self.word_counter.config(fg=self.entry_field.cget("fg"))
-    
+        
+
     def accept_connection(self):
         #get username TODO: Once username box is implemented, we should get text from it. For now we set a static value
         self.username = self.user_entry.get()
