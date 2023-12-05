@@ -59,7 +59,7 @@ class GUI:
         self.address_entry.place(relx=.6, rely=.55,anchor= CENTER)
         self.start_button.place(relx=.5, rely=.70,anchor= CENTER)
 
-        #create label to update
+        # Create label to update
         self.data = "waiting..."
         self.label = Label(self.root, text=self.data)
         # self.label.pack(pady=30)
@@ -83,25 +83,25 @@ class GUI:
         self.root.mainloop()
     
     def send_message(self):
-        #get message text
+        # Get message text
         data = self.entry_field.get()
 
         if data:
 
-            #create dictionary for message data
+            # Create dictionary for message data
             tcp_message = dict()
 
-            #add contents to message
+            # Add contents to message
             tcp_message["data"] = data
             tcp_message["time"] = str(datetime.now())
             tcp_message["sender"] = self.username
 
-            #serialize message with json
+            # Serialize message with json
             msg_serial = json.dumps(tcp_message).encode("utf-8")
 
             self.sec_con.sendall(msg_serial)
             
-            #remove text from input box
+            # Remove text from input box
             self.entry_field.delete(0, "end")
 
     def recv_message(self, client):
@@ -119,15 +119,15 @@ class GUI:
                     else:
                         align = "e"
 
-                    #create message box
+                    # Create message box
                     message_frame = Frame(self.messages_inner_frame, padx=10, pady=5, bd=2, relief=RAISED)
                     message_frame.pack(anchor=align, pady=5, padx=10, fill="both")
 
-                    #create username label
-                    username_label = Label(message_frame, text=data["sender"], font=("Helvetica", 10, "bold"))
+                    # Create username label
+                    username_label = Label(message_frame, text=data["sender"], font=("Helvetica", 12, "bold"), fg='blue')
                     username_label.pack(anchor=align)
                     
-                    #create message label
+                    # Create message label
                     message_label = Label(message_frame, text=data["data"], justify=LEFT)
                     message_label.pack(anchor=align)
 
@@ -137,6 +137,7 @@ class GUI:
                     #create metadata label
                     metadata_label = Label(message_frame, text=data["time"], font=("Helvetica", 8))
                     metadata_label.pack(anchor=align, pady=(5, 0))
+                    
             except Exception as error:
                 print(f'An error occured {error}')
                 client.close()
@@ -147,16 +148,16 @@ class GUI:
         self.counter += 1
     
     def start_thread(self):
-        #TODO: Switch screen to the chat screen
+        # TODO: Switch screen to the chat screen
 
-        #TODO: Create protections (if username is taken, inform user and don't connect. If IP is invalid, don't connect, inform user. Etc.)
+        # TODO: Create protections (if username is taken, inform user and don't connect. If IP is invalid, don't connect, inform user. Etc.)
 
-        #create dummy message box for now
+        # Create dummy message box for now
         self.make_chat_window()
 
         self.accept_connection()
 
-        #start receive thread for TCP connection
+        # Start receive thread for TCP connection
         self.receive_thread = threading.Thread(target=self.recv_message, args=(self.sec_con,))
         self.receive_thread.daemon = True
         self.receive_thread.start()
@@ -180,24 +181,21 @@ class GUI:
         # Configure canvas and scrollbar
         self.messages_canvas.configure(yscrollcommand=self.messages_scrollbar.set)
         self.messages_canvas.bind("<Configure>", lambda e: self.messages_canvas.configure(scrollregion=self.messages_canvas.bbox("all")))
-
+        
         # Create a frame to hold the messages inside the canvas
-        self.messages_inner_frame = Frame(self.messages_canvas,bg=self.aqua_blue)
-        self.messages_inner_frame.pack(fill="both", expand=True)
-        self.messages_canvas.create_window((0, 0), window=self.messages_inner_frame, anchor='nw')
-
-         
-
+        self.messages_inner_frame = Frame(self.messages_canvas,bg=self.dark_grey)
+        self.window = self.messages_canvas.create_window((0, 0), window=self.messages_inner_frame, anchor='nw', width = 530, height=380)                                               
+        
         # Bind mousewheel scrolling to the messages canvas
         self.messages_canvas.bind_all("<MouseWheel>", lambda event: self.messages_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units"))
 
-        
         # Create a label for each message
         self.messages = []
 
         # Create Entry widget for typing messages
         self.entry_frame = Frame(self.root)
         self.entry_frame.pack(side="bottom", fill="x", pady=5)
+        
         # Text input
         self.entry_field = Entry(self.entry_frame)
         self.entry_field.pack(side="left", fill="x", expand=True)
@@ -228,22 +226,22 @@ class GUI:
         
 
     def accept_connection(self):
-        #get username TODO: Once username box is implemented, we should get text from it. For now we set a static value
+        # Get username TODO: Once username box is implemented, we should get text from it. For now we set a static value
         self.username = self.user_entry.get()
         self.IP = self.address_entry.get()
 
-        #create ssl context
+        # Create ss1 context
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         context.load_verify_locations(CERTIFICATE_PATH)
         context.check_hostname = False
 
-        #create socket
+        # Create socket
         self.con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        #secure socket
+        # Secure socket
         self.sec_con = context.wrap_socket(self.con)
 
-        #connect to the server
+        # Connect to the server
         try:
             self.sec_con.connect((self.IP, 9001))
         except:
