@@ -184,7 +184,7 @@ class GUI:
         
         # Create a frame to hold the messages inside the canvas
         self.messages_inner_frame = Frame(self.messages_canvas,bg=self.dark_grey)
-        self.window = self.messages_canvas.create_window((0, 0), window=self.messages_inner_frame, anchor='nw', width = 530, height=380)                                               
+        self.window = self.messages_canvas.create_window((0, 0), window=self.messages_inner_frame, anchor='nw', width = 530)                                               
         
         # Bind mousewheel scrolling to the messages canvas
         self.messages_canvas.bind_all("<MouseWheel>", lambda event: self.messages_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units"))
