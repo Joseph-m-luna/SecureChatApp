@@ -132,7 +132,7 @@ class GUI:
                     message_label.pack(anchor=align)
 
                     # make message label wrap text dynamically
-                    message_label.bind("<Configure>", lambda event: message_label.config(wraplength=message_label.winfo_width()))
+                    message_frame.bind("<Configure>", lambda event: message_label.config(wraplength=message_frame.winfo_width()))
 
                     #create metadata label
                     metadata_label = Label(message_frame, text=data["time"], font=("Helvetica", 8))
