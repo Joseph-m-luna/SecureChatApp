@@ -137,6 +137,10 @@ class GUI:
                     #create metadata label
                     metadata_label = Label(message_frame, text=data["time"], font=("Helvetica", 8))
                     metadata_label.pack(anchor=align, pady=(5, 0))
+
+                    # Update canvas size
+                    self.messages_inner_frame.update_idletasks()
+                    self.messages_canvas.configure(scrollregion=self.messages_canvas.bbox("all"))
                     
             except Exception as error:
                 print(f'An error occured {error}')
