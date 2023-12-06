@@ -73,11 +73,11 @@ class GUI:
         self.root.quit()
         #self.root.destroy()
 
-    def on_closing(self):
-        if hasattr(self, "sec_con"):
-            self.sec_con.close()
-        self.root.quit()
-        #self.root.destroy()
+    # def on_closing(self):
+    #     if hasattr(self, "sec_con"):
+    #         self.sec_con.close()
+    #     self.root.quit()
+    #     #self.root.destroy()
 
     def run(self):
         self.root.mainloop()

@@ -34,24 +34,33 @@ class server:
         for client in self.clients:
             client.send(message)
 
+    def removeClient(self, client):
+        #remove client from client list
+        index = self.clients.index(client)
+        self.clients.remove(client)
+        client.close()
+        nickname = self.nicknames[index]
+
+        #inform uesrs of disconnection
+        leave_msg = {"data": f"{nickname} left the chat!", "time": (str(datetime.now())), "sender": "Server"}
+        self.broadcast(json.dumps(leave_msg).encode("utf-8"))
+        self.nicknames.remove(nickname)
+        
+
     def handle(self, client):
         while True:
             try:
                 message = client.recv(1024)
-                #decrypt message
                 self.broadcast(message)
-            except:
-                #remove client from client list
-                index = self.clients.index(client)
-                self.clients.remove(client)
-                client.close()
-                nickname = self.nicknames[index]
+                print(message)
 
-                #inform uesrs of disconnection
-                leave_msg = {"data": f"{nickname} left the chat!", "time": (str(datetime.now())), "sender": "Server"}
-                self.broadcast(json.dumps(leave_msg).encode("utf-8"))
-                self.nicknames.remove(nickname)
+                if not message:
+                    self.removeClient(client)
+                    break
+            except:
+                self.removeClient(client)
                 break
+                
 
     def setup_client(self, client, address, context, s):
         client = context.wrap_socket(client, server_side=True)
@@ -100,7 +109,7 @@ class server:
                     while True:
                         client, address = s.accept()
                         if len(self.clients) >= self.limit:
-                            print(len(self.clients))
+                            #print(len(self.clients))
                             client.close()
                         else:
                             #setup connection
