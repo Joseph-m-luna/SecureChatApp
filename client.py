@@ -247,7 +247,7 @@ class GUI:
 
         # Connect to the server
         try:
-            self.sec_con.connect((self.IP, 9001))
+            self.sec_con.connect((self.IP, 8080))
         except:
             self.sec_con.close()
             self.root.quit()
