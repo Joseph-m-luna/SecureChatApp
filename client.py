@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import *
 from datetime import datetime
 import json
-import time
 import socket
 import threading
 import ssl
@@ -20,9 +19,6 @@ MESSAGE_CHAR_LIMIT = 500
 #  * when messages are sent from the server, load them into the GUI
 #  * when client sends message to server, server will send that out to the other clients
 ###############################
-class TCP:
-    def __init__(self, host, port):
-        pass
 
 class GUI:
     def __init__(self):
@@ -48,7 +44,6 @@ class GUI:
         self.user_entry = Entry(self.root)
         self.address_label = Label(self.root, text="Chatroom IP: ", font=("Helvetica, 18"), bg=self.dark_grey, fg=self.white)
         self.address_entry = Entry(self.root)
-        # , show="*"
         self.start_button = Button(self.root, text="Connect", font="Helvetica, 20", command=self.start_thread)
 
         # Login Wdiget Placement
@@ -62,22 +57,13 @@ class GUI:
         # Create label to update
         self.data = "waiting..."
         self.label = Label(self.root, text=self.data)
-        # self.label.pack(pady=30)
         self.counter = 0
 
         self.nickname = ""
-        # self.user_entry.get()
 
     def on_closing(self):
         self.sec_con.close()
         self.root.quit()
-        #self.root.destroy()
-
-    # def on_closing(self):
-    #     if hasattr(self, "sec_con"):
-    #         self.sec_con.close()
-    #     self.root.quit()
-    #     #self.root.destroy()
 
     def run(self):
         self.root.mainloop()
@@ -107,6 +93,7 @@ class GUI:
     def recv_message(self, client):
         while True:
             try:
+                #wait to receive message from server
                 data = client.recv(1024).decode("utf-8")
                 data = json.loads(data)
                 if len(data) == 1:
@@ -152,11 +139,6 @@ class GUI:
         self.counter += 1
     
     def start_thread(self):
-        # TODO: Switch screen to the chat screen
-
-        # TODO: Create protections (if username is taken, inform user and don't connect. If IP is invalid, don't connect, inform user. Etc.)
-
-        # Create dummy message box for now
         self.make_chat_window()
 
         self.accept_connection()
@@ -230,7 +212,6 @@ class GUI:
         
 
     def accept_connection(self):
-        # Get username TODO: Once username box is implemented, we should get text from it. For now we set a static value
         self.username = self.user_entry.get()
         self.IP = self.address_entry.get()
 

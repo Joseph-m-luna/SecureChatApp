@@ -1,26 +1,11 @@
 import socket
 import threading
 from datetime import datetime
-import time
 import json
 import ssl
 
 PRIV_KEY_PATH = "./crypto/private.key"
 CERTIFICATE_PATH = "./crypto/certificate.pem"
-
-class connection:
-    def __init__(self, con, addr):
-        self.con = con
-        self.addr = addr
-    
-    def decode_msg(self, data):
-        #deserialize data
-        decoded_data = data.decode()
-        print("decoded: ", decoded_data)
-        message_dict = json.loads(data)
-
-        return message_dict
-    
    
 class server:
     def __init__(self, host, port):
@@ -54,6 +39,8 @@ class server:
                 self.broadcast(message)
                 print(message)
 
+                #if message received is empty bytes,
+                #the client is no longer there
                 if not message:
                     self.removeClient(client)
                     break
@@ -109,7 +96,6 @@ class server:
                     while True:
                         client, address = s.accept()
                         if len(self.clients) >= self.limit:
-                            #print(len(self.clients))
                             client.close()
                         else:
                             #setup connection
